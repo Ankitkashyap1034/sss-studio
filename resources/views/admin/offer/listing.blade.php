@@ -33,7 +33,6 @@
                                 <div class="col-sm-auto">
                                     <div>
                                         <button type="button" class="btn btn-success add-btn" data-bs-toggle="modal" id="create-btn" data-bs-target="#showModal"><i class="ri-add-line align-bottom me-1"></i> Add</button>
-                                        <button class="btn btn-soft-danger" onClick="deleteMultiple()"><i class="ri-delete-bin-2-line"></i></button>
                                     </div>
                                 </div>
                                 <div class="col-sm">
@@ -52,6 +51,7 @@
                                         <tr>
                                             <th class="sort" data-sort="">S.NO</th>
                                             <th class="sort" data-sort="email">Offer Bank</th>
+                                            <th class="sort" data-sort="email">Credit Card Type</th>
                                             <th class="sort" data-sort="phone">offer Payment Partner</th>
                                             <th class="sort" data-sort="date">Created at</th>
                                             <th class="sort" data-sort="status">Status</th>
@@ -63,6 +63,7 @@
                                             <tr>
                                                 <td>{{$i++}}</td>
                                                 <td class="">{{$offer->bank->name}}</td>
+                                                <td class="">{{$offer->card_type()}}</td>
                                                 <td class="email">
                                                     {{$offer->payment_platform->name}}
                                                 </td>
@@ -98,21 +99,44 @@
                                                                 </div>
                                                                 
                                                                 <div class="mb-3">
-                                                                    <input type="hidden" name="bank_id" value="{{$offer->id}}">
+                                                                    <label for="customername-field" class="form-label">Affilate Link</label>
+                                                                    <input class="form-control" required name="aff_link" type="text" placeholder="Paste the affilate link" value="{{$offer->aff_link}}" required>
+                                                                </div>
+                                                                
+                                                                <div class="mb-3">
                                                                     <label for="customername-field" class="form-label">Bank Name</label>
-                                                                    <select class="form-control" data-trigger id="bank-name" name="bank_id" required>
+                                                                    <select class="form-control" data-trigger id="bank-name-select_{{$offer->id}}" name="bank_id" required>
                                                                         @foreach ($banks as $bank)
                                                                             <option value="{{$bank->id}}" @if($offer->bank_id == $bank->id) selected  @endif>{{$bank->name}}</option>
                                                                         @endforeach
                                                                     </select>
                                                                 </div>
-                                    
+                                                                <?php
+                                                                    // $cards = $offer->get_all_cards_type();
+                                                                ?>
+                                                                <div class="mb-3">
+                                                                    <label for="email-field" class="form-label">Card Type</label>
+                                                                    <select class="form-control" id="card-type-show_{{$offer->id}}" name="card_type_id" required>
+                                                                        @foreach ($offer->get_all_cards_type() as $cards)
+                                                                            <option value="{{$cards->id}}" @if($cards->id == $offer->card_type_id) selected @endif>{{$cards->card_type_name}}</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+
                                                                 <div class="mb-3">
                                                                     <label for="email-field" class="form-label">Payment Platform Name</label>
                                                                     <select class="form-control" data-trigger id="payment-platform-name" name="payment_platform_id" required>
                                                                         @foreach ($paymentPlatforms as $payment)
                                                                             <option value="{{$payment->id}}" @if($offer->payment_platform_id == $payment->id) selected  @endif>{{$payment->name}}</option>
                                                                         @endforeach
+                                                                    </select>
+                                                                </div>
+                                                                
+                                                                <div class="mb-3">
+                                                                    <label for="status-field" class="form-label">Status</label>
+                                                                    <select class="form-control" data-trigger id="active" name="active" required>
+                                                                        <option value="1" @if($offer->active == 1) selected @endif>Active</option>
+                                                                        <option value="0" @if($offer->active == 0) selected @endif>In active</option>
                                                                     </select>
                                                                 </div>
                                     
@@ -160,6 +184,27 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <script>
+                                                $(document).ready(function() {
+                                                    var offerId = {!!$offer->id!!}
+                                                    $('#bank-name-select_'+offerId).change(function() {
+                                                        var bankId = $(this).val();
+                                                        $.ajax({
+                                                            url: '{{ url('admin/get/cards') }}' + '/' + bankId,
+                                                            type: 'GET',
+                                                            success: function(response) {
+                                                                $('#card-type-show_'+offerId).empty();
+                                                                $('#card-type-show_'+offerId).append('<option value="">Select Card Type</option>');
+                                                                $.each(response.cards, function(index, val) {
+                                                                    $('#card-type-show_'+offerId).append('<option value="' + val.id +
+                                                                        '">' + val.card_type_name + '</option>');
+                                                                });
+                                                            }
+                                                        });
+                                                    });
+                                                });
+                                            </script>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -192,71 +237,7 @@
             </div>
             <!-- end col -->
         </div>
-
-        <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" >
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-light p-3">
-                        <h5 class="modal-title" id="exampleModalLabel"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="close-modal"></button>
-                    </div>
-                    <form class="tablelist-form" autocomplete="off" action="{{route('admin.store.offer')}}" method="post">
-                        @csrf
-                        <div class="modal-body">
-
-                            <div class="mb-3">
-                                <label for="customername-field" class="form-label">Amount</label>
-                                <input class="form-control" required name="min_amount" type="number" placeholder="Enter the amount for offer">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="customername-field" class="form-label">Bank Name</label>
-                                <select class="form-control" data-trigger id="bank-name" name="bank_id" required>
-                                    @foreach ($banks as $bank)
-                                        <option value="{{$bank->id}}">{{$bank->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="email-field" class="form-label">Payment Platform Name</label>
-                                <select class="form-control" data-trigger id="payment-platform-name" name="payment_platform_id" required>
-                                    @foreach ($paymentPlatforms as $payment)
-                                        <option value="{{$payment->id}}">{{$payment->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="status-field" class="form-label">Offer Details</label>
-                                <textarea name="description" class="form-control" id="" cols="30" rows="10" value=""></textarea>
-                            </div>
-
-                            <div>
-                                <label for="status-field" class="form-label">Status</label>
-                                <select class="form-control" data-trigger id="active" name="active" required>
-                                    <option value="">Status</option>
-                                    <option value="1">Active</option>
-                                    <option value="0">In active</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <div class="hstack gap-2 justify-content-end">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-success" id="add-btn">Add Offer</button>
-                                <!-- <button type="button" class="btn btn-success" id="edit-btn">Update</button> -->
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal -->
-        
-        <!--end modal -->
-
+        @include('admin.offer.create',compact('banks','paymentPlatforms'))
     </div>
     <!-- container-fluid -->
 </div>

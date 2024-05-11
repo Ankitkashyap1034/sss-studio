@@ -26,7 +26,8 @@
     <!-- custom Css-->
     <link href="{{asset('admin/assets/css/custom.min.css')}}" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    @stack('css')
 </head>
 
 <body>
@@ -44,5 +45,6 @@
     </div>
     @include('admin.layouts.extra')
     @include('admin.layouts.js')
+    @stack('js')
 </body>
 </html>

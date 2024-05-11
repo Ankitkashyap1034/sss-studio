@@ -16,7 +16,7 @@ use App\Http\Controllers\Front\HomeController;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-Route::get('/clear-cache', function () {
+Route::get('/clear', function () {
     Artisan::call('cache:clear');
     Artisan::call('route:clear');
     Artisan::call('view:clear');

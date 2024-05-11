@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Admin\CardTypeController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -54,6 +55,16 @@ class Offers extends Model
         $payment  = PaymentPlatforms::find($this->payment_platform_id);
         $path = 'storage/'.$payment->image;
         return asset($path);
+    }
+
+    public function get_all_cards_type()
+    {
+        return CardType::where('bank_id',$this->bank_id)->get();
+    }
+    
+    public function card_type()
+    {
+        return CardType::where('bank_id',$this->bank_id)->pluck('card_type_name')->first();
     }
 
     public function notDeleteFullyKeepRecord()
